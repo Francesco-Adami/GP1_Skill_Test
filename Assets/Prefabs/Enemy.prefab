@@ -48,12 +48,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44a61596ac32f7443845bd196564f2d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  characterData: {fileID: 11400000, guid: e4b107627dd69454399f39c3f1d82caa, type: 2}
   speed: 1
+  health:
+    maxHealth: 5
+    currentHealth: 0
+    isInvincible: 0
   moveDistance: 2
   detectionRadius: 4
-  attackRange: 2
+  attackRange: 3
+  attackCooldown: 1
   currentState: 0
   player: {fileID: 0}
+  attackTimer: 0
 --- !u!50 &1154343687906996454
 Rigidbody2D:
   serializedVersion: 4

@@ -14,10 +14,12 @@ public class Enemy : Character
     [SerializeField] private float moveDistance = 5f;   // Distanza da percorrere a destra e a sinistra
     [SerializeField] private float detectionRadius = 5f;
     [SerializeField] private float attackRange = 5f;
+    [SerializeField] private float attackCooldown = 1f; // Tempo di attesa tra gli attacchi
 
     [Header("DEBUG VARIABLES")]
     [SerializeField] private EnemyState currentState = EnemyState.Patrol;
     [SerializeField] private Player player;
+    [SerializeField] private float attackTimer; // Velocità di movimento
 
     private Rigidbody2D rb2d;
 
@@ -99,7 +101,7 @@ public class Enemy : Character
             colliderCheckTimer = 0f;
         }
 
-        Vector3 newPos = Vector3.MoveTowards(rb2d.position, targetPosition, speed * Time.fixedDeltaTime);
+        Vector3 newPos = Vector3.MoveTowards(rb2d.position, targetPosition, characterData.speed * Time.fixedDeltaTime);
         rb2d.MovePosition(newPos);
 
         Debug.Log("targetPosition: " + targetPosition);
@@ -153,7 +155,7 @@ public class Enemy : Character
         Vector3 direction = player.transform.position - transform.position;
         direction.Normalize();
 
-        Vector3 newPos = rb2d.position + (Vector2)(direction * speed * Time.fixedDeltaTime);
+        Vector3 newPos = rb2d.position + (Vector2)(direction * characterData.speed * Time.fixedDeltaTime);
         rb2d.MovePosition(newPos);
 
         Debug.LogWarning("CHASE: " + (Vector3.Distance(rb2d.position, player.transform.position) < attackRange));
@@ -170,7 +172,13 @@ public class Enemy : Character
     {
         Debug.Log("Player == null? " + player == null);
         if (player == null) return;
-        Debug.Log("Attaccando il giocatore!");
+
+        attackTimer -= Time.deltaTime;
+        if (attackTimer <= 0)
+        {
+            PerformAction();
+            attackTimer = attackCooldown;
+        }
 
         if (Vector3.Distance(rb2d.position, player.transform.position) >= attackRange)
         {
@@ -181,6 +189,7 @@ public class Enemy : Character
 
     protected override void PerformAction()
     {
-
+        Debug.Log("Attacco il Player");
+        player.GetComponent<Player>().TakeDamage(1f);
     }
 }

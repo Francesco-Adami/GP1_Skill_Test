@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class Player : Character
 {
-
     [Header("Player Jump Settings")]
     [SerializeField] private float jumpForce;
     [SerializeField] private LayerMask groundLayer;

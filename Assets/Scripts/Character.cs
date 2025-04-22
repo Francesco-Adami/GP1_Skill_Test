@@ -7,8 +7,8 @@ using UnityEngine;
 public abstract class Character : MonoBehaviour
 {
     [Header("Character Stats")]
-    [SerializeField] protected float speed;
-    protected Health health;
+    [SerializeField] protected CharacterData characterData;
+    [SerializeField] protected Health health;
 
     protected Rigidbody2D rigidBody2D;
     protected Animator animator;
@@ -16,6 +16,7 @@ public abstract class Character : MonoBehaviour
 
     protected Vector2 _Input;
 
+    [System.Serializable]
     public struct Health
     {
         public float maxHealth;
@@ -27,17 +28,20 @@ public abstract class Character : MonoBehaviour
     {
         rigidBody2D = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+
+        spriteRenderer.sprite = characterData.sprite;
+        health.maxHealth = characterData.maxHealth;
         health.currentHealth = health.maxHealth;
         health.isInvincible = false;
     }
 
     protected void Move()
     {
-        rigidBody2D.velocity = new Vector2(_Input.x * speed, rigidBody2D.velocity.y);
+        rigidBody2D.velocity = new Vector2(_Input.x * characterData.speed, rigidBody2D.velocity.y);
     }
 
-    protected void TakeDamage(float damage)
+    public void TakeDamage(float damage)
     {
         if (health.isInvincible) return;
 
@@ -48,7 +52,7 @@ public abstract class Character : MonoBehaviour
         }
     }
 
-    protected void GainHealth(float hpGained)
+    public void GainHealth(float hpGained)
     {
         health.currentHealth += hpGained;
         if (health.currentHealth > health.maxHealth)
