@@ -104,9 +104,6 @@ public class Enemy : Character
         Vector3 newPos = Vector3.MoveTowards(rb2d.position, targetPosition, characterData.speed * Time.fixedDeltaTime);
         rb2d.MovePosition(newPos);
 
-        Debug.Log("targetPosition: " + targetPosition);
-        Debug.Log("IF: " + (Vector3.Distance(rb2d.position, targetPosition) <= 0.01f));
-
         // Quando il target viene raggiunto, inverte la direzione
         if (Mathf.Abs(rb2d.position.x - targetPosition.x) <= 0.01f)
         {
@@ -158,7 +155,6 @@ public class Enemy : Character
         Vector3 newPos = rb2d.position + (Vector2)(direction * characterData.speed * Time.fixedDeltaTime);
         rb2d.MovePosition(newPos);
 
-        Debug.LogWarning("CHASE: " + (Vector3.Distance(rb2d.position, player.transform.position) < attackRange));
         // Se il giocatore è abbastanza vicino, passa allo stato ATTACK
         if (Vector3.Distance(rb2d.position, player.transform.position) < attackRange)
         {
@@ -170,7 +166,6 @@ public class Enemy : Character
     #region ATTACK
     private void AttackPlayer()
     {
-        Debug.Log("Player == null? " + player == null);
         if (player == null) return;
 
         attackTimer -= Time.deltaTime;

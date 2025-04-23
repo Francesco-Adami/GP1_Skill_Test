@@ -49,11 +49,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterData: {fileID: 11400000, guid: e4b107627dd69454399f39c3f1d82caa, type: 2}
-  speed: 1
   health:
     maxHealth: 5
     currentHealth: 0
     isInvincible: 0
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  groundCheckDist: 0.1
   moveDistance: 2
   detectionRadius: 4
   attackRange: 3
@@ -87,7 +90,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!95 &3410950604807612201
 Animator:
   serializedVersion: 5

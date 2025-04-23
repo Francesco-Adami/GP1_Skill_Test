@@ -13,8 +13,5 @@ public class CollectibleData : ScriptableObject
 public enum CollectibleType
 {
     Health,
-    Mana,
-    Experience,
-    Currency,
-    Item
+    MarioStar,
 }

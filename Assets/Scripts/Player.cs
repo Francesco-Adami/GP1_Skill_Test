@@ -7,19 +7,19 @@ public class Player : Character
 {
     [Header("Player Jump Settings")]
     [SerializeField] private float jumpForce;
-    [SerializeField] private LayerMask groundLayer;
-    [SerializeField] private float extraHeight = 0.1f;
     [SerializeField] private Collider2D col;
 
     [Header("Debug Variables")]
     [SerializeField] private bool isGrounded;
+    [SerializeField] private bool jumpPressed;
 
     private void Update()
     {
         _Input.x = Input.GetAxisRaw("Horizontal");
-        _Input.y = Input.GetButtonDown("Jump") ? jumpForce : 0;
 
+        CheckDirection();
         Move();
+        EvaluateAnimationState();
         CheckGroundAndJump();
         Interact();
     }
@@ -32,15 +32,33 @@ public class Player : Character
         }
     }
 
+    private void CheckDirection()
+    {
+        if (_Input.x > 0)
+        {
+            spriteRenderer.flipX = false;
+        }
+        else if (_Input.x < 0)
+        {
+            spriteRenderer.flipX = true;
+        }
+    }
+
     public void CheckGroundAndJump()
     {
-        RaycastHit2D rayHit = Physics2D.Raycast(col.bounds.center, Vector2.down, col.bounds.extents.y + extraHeight, groundLayer);
+        RaycastHit2D rayHit = Physics2D.Raycast(col.bounds.center, Vector2.down, col.bounds.extents.y + groundCheckDist, groundLayer);
         isGrounded = rayHit.collider != null;
+        if (!isGrounded) { jumpPressed = true; return; }
 
-        if (!isGrounded) return;
-        if (_Input.y > 0)
+        if (jumpPressed)
         {
-            rigidBody2D.AddForce(new Vector2(0, _Input.y), ForceMode2D.Impulse);
+            jumpPressed = false;
+        }
+
+        if (Input.GetButtonDown("Jump"))
+        {
+            rigidBody2D.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+
             isGrounded = false;
         }
     }
@@ -81,4 +99,17 @@ public class Player : Character
         Debug.Log("Nessuna azione eseguita: non c'è nemico o oggetto raccoglibile nelle vicinanze.");
     }
 
+    internal void StartInvincibleRoutine(float value)
+    {
+        health.isInvincible = true;
+        spriteRenderer.color = Color.yellow;
+        StartCoroutine(InvincibleRoutine(value));
+    }
+
+    private IEnumerator InvincibleRoutine(float value)
+    {
+        yield return new WaitForSeconds(value);
+        health.isInvincible = false;
+        spriteRenderer.color = Color.white;
+    }
 }
