@@ -13,6 +13,7 @@ public abstract class Character : MonoBehaviour
     protected Rigidbody2D rigidBody2D;
     protected Animator animator;
     protected SpriteRenderer spriteRenderer;
+    protected AnimatorStates animationState;
 
     protected Vector2 _Input;
 
@@ -30,6 +31,7 @@ public abstract class Character : MonoBehaviour
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
 
+        animationState = AnimatorStates.Idle;
         spriteRenderer.sprite = characterData.sprite;
         health.maxHealth = characterData.maxHealth;
         health.currentHealth = health.maxHealth;
@@ -38,7 +40,14 @@ public abstract class Character : MonoBehaviour
 
     protected void Move()
     {
+        if (_Input.x == 0)
+        {
+            SetAnimatorState(AnimatorStates.Idle);
+            return;
+        }
+
         rigidBody2D.velocity = new Vector2(_Input.x * characterData.speed, rigidBody2D.velocity.y);
+        SetAnimatorState(AnimatorStates.Movement);
     }
 
     public void TakeDamage(float damage)
@@ -61,5 +70,46 @@ public abstract class Character : MonoBehaviour
         }
     }
 
+    protected void SetAnimatorState(AnimatorStates state)
+    {
+        animationState = state;
+        switch (state)
+        {
+            case AnimatorStates.Idle:
+                animator.SetBool("Idle", true);
+                animator.SetBool("Movement", false);
+                animator.SetBool("Jump", false);
+                animator.SetBool("Attack", false);
+                break;
+            case AnimatorStates.Movement:
+                animator.SetBool("Idle", false);
+                animator.SetBool("Movement", true);
+                animator.SetBool("Jump", false);
+                animator.SetBool("Attack", false);
+                break;
+            case AnimatorStates.Jump:
+                animator.SetBool("Idle", false);
+                animator.SetBool("Movement", false);
+                animator.SetBool("Jump", true);
+                animator.SetBool("Attack", false);
+                break;
+            case AnimatorStates.Attack:
+                animator.SetBool("Idle", false);
+                animator.SetBool("Movement", false);
+                animator.SetBool("Jump", false);
+                animator.SetBool("Attack", true);
+                break;
+        }
+    }
+
     protected abstract void PerformAction();
+}
+
+
+public enum AnimatorStates
+{
+    Idle,
+    Movement,
+    Jump,
+    Attack,
 }
