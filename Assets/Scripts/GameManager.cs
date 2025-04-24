@@ -1,11 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
     public int score;
+    public int totalObjects;
     public int objectCollected;
+
+    [Header("UI Settings")]
+    [SerializeField] private TextMeshProUGUI objectsText;
+    [SerializeField] private GameObject winText;
+
     public static GameManager Instance { get; private set; }
 
     private void Awake()
@@ -14,5 +21,25 @@ public class GameManager : MonoBehaviour
         else Instance = this;
     }
 
-    public void AddObjectCollected() { objectCollected++; }
+    private void Start()
+    {
+        winText.SetActive(false);
+        SetObjectsUI();
+        totalObjects = FindObjectsOfType<Collectible>().Length;
+    }
+
+    public void AddObjectCollected()
+    {
+        objectCollected++;
+        SetObjectsUI();
+        if (objectCollected >= totalObjects)
+        {
+            winText.SetActive(true);
+        }
+    }
+
+    private void SetObjectsUI()
+    {
+        objectsText.text = "OGGETTI RACCOLTI: " + objectCollected;
+    }
 }
