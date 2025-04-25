@@ -8,6 +8,8 @@ public class Player : Character
     [Header("Player Jump Settings")]
     [SerializeField] private float jumpForce;
     [SerializeField] private Collider2D col;
+    [SerializeField] private float jumpHeight = 2f;      // Altezza massima del salto
+    [SerializeField] private float jumpDuration = 0.5f;  // Durata totale del salto
 
     [Header("Debug Variables")]
     [SerializeField] private bool isGrounded;
@@ -27,8 +29,8 @@ public class Player : Character
 
         CheckIfIsOnMap();
 
-        CheckDirection();
         Move();
+        CheckDirection();
         EvaluateAnimationState();
         CheckGroundAndJump();
         Interact();
@@ -65,12 +67,20 @@ public class Player : Character
         }
     }
 
+
+    private bool isJumping = false;
+
     public void CheckGroundAndJump()
     {
-        RaycastHit2D rayHit = Physics2D.Raycast(col.bounds.center, Vector2.down, col.bounds.extents.y + groundCheckDist, groundLayer);
+        RaycastHit2D rayHit = Physics2D.Raycast(
+            col.bounds.center,
+            Vector2.down,
+            col.bounds.extents.y + groundCheckDist,
+            groundLayer
+        );
         isGrounded = rayHit.collider != null;
-        if (!isGrounded) { jumpPressed = true; return; }
 
+        /* PUNTO 5 - JUMP con ADD FORCE
         if (jumpPressed)
         {
             jumpPressed = false;
@@ -82,7 +92,65 @@ public class Player : Character
 
             isGrounded = false;
         }
+        */
+
+
+        // Se siamo già in aria, niente controllo di salto
+        if (!isGrounded && !isJumping)
+        {
+            jumpPressed = true;
+            return;
+        }
+
+        // Reset del flag quando torniamo a terra
+        if (isGrounded && jumpPressed)
+        {
+            jumpPressed = false;
+        }
+
+        // Se premo “Jump” e sono a terra, avvio la coroutine di salto
+        if (Input.GetButtonDown("Jump") && isGrounded && !isJumping)
+        {
+            StartCoroutine(JumpArc());
+        }
     }
+
+    private IEnumerator JumpArc()
+    {
+        isJumping = true;
+
+        // 1) Disabilita la gravità in modo che sia solo la nostra curva a controllare l'altezza
+        float originalGravity = rigidBody2D.gravityScale;
+        rigidBody2D.gravityScale = 0f;
+
+        float elapsed = 0f;
+
+        while (elapsed < jumpDuration)
+        {
+            // t da 0 a π
+            float t = Mathf.PI * (elapsed / jumpDuration);
+
+            // Altezza = sin(t) * jumpHeight
+            float yOffset = Mathf.Sin(t) * jumpHeight;
+
+            // Velocità verticale = derivata di sin = cos(t) * (π/jumpDuration) * jumpHeight
+            float yVelocity = Mathf.Cos(t) * (Mathf.PI / jumpDuration) * jumpHeight;
+
+            // Mantieni la velocità orizzontale (Move() in Update imposta rigidBody2D.velocity.x)
+            float xVelocity = rigidBody2D.velocity.x;
+
+            rigidBody2D.velocity = new Vector2(xVelocity, yVelocity);
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        // 2) Riattiva la gravità e lascia che la fisica faccia il “resto” (atterraggio, collisioni)
+        rigidBody2D.gravityScale = originalGravity;
+        isJumping = false;
+    }
+
+
 
     protected override void PerformAction()
     {
