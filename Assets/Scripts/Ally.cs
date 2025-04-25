@@ -13,8 +13,9 @@ public class Ally : Character
     [Header("DEBUG VARIABLES")]
     [SerializeField] private Player player; // Riferimento al giocatore
 
-    private void Start()
+    protected override void Start()
     {
+        base.Start();
         player = FindObjectOfType<Player>();
         StartCoroutine(HealPlayerRoutine());
     }

@@ -121,7 +121,7 @@ public abstract class Character : MonoBehaviour
         myCollider = GetComponent<Collider2D>();
     }
 
-    private void Start()
+    protected virtual void Start()
     {
         spriteRenderer.sprite = characterData.sprite;
         health.maxHealth = characterData.maxHealth;

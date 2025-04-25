@@ -32,8 +32,9 @@ public class Enemy : Character
     private float colliderCheckTimer = 0f;
     private float colliderCheckInterval = 0.2f; // Controllo ogni 0.2 secondi
 
-    void Start()
+    protected override void Start()
     {
+        base.Start();
         rb2d = GetComponent<Rigidbody2D>();
         currentState = EnemyState.Chase;
         initialPosition = transform.position;

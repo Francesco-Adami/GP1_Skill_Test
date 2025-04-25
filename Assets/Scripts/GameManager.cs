@@ -24,8 +24,8 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         winText.SetActive(false);
-        SetObjectsUI();
         totalObjects = FindObjectsOfType<Collectible>().Length;
+        SetObjectsUI();
     }
 
     public void AddObjectCollected()
@@ -40,6 +40,6 @@ public class GameManager : MonoBehaviour
 
     private void SetObjectsUI()
     {
-        objectsText.text = "OGGETTI RACCOLTI: " + objectCollected;
+        objectsText.text = "OGGETTI RACCOLTI: " + objectCollected + "/" + totalObjects;
     }
 }
