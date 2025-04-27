@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 3
   maxHealth: 20
-  damage: 1
-  sprite: {fileID: 0}
+  damage: 2
+  sprite: {fileID: -931878331, guid: cefe67a4324128b47aaeeb39a72e18e5, type: 3}

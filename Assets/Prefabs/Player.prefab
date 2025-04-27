@@ -82,7 +82,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterData: {fileID: 11400000, guid: b9d83eb5c65bc7942bda24ef61c0f502, type: 2}
   health:
-    maxHealth: 100
+    maxHealth: 10
     currentHealth: 0
     isInvincible: 0
   groundLayer:

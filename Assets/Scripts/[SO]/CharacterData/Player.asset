@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Player
   m_EditorClassIdentifier: 
   speed: 5
-  maxHealth: 100
+  maxHealth: 10
   damage: 5
   sprite: {fileID: -1686440191, guid: 9186edb8c36877c4abb71b0d8ef3b4c3, type: 3}

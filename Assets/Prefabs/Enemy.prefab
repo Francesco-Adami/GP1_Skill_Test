@@ -55,15 +55,13 @@ MonoBehaviour:
     isInvincible: 0
   groundLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 128
   groundCheckDist: 0.1
-  moveDistance: 2
+  moveDistance: 3
   detectionRadius: 4
-  attackRange: 3
+  attackRange: 2
   attackCooldown: 1
   currentState: 0
-  player: {fileID: 0}
-  attackTimer: 0
 --- !u!50 &1154343687906996454
 Rigidbody2D:
   serializedVersion: 4
@@ -101,7 +99,7 @@ Animator:
   m_GameObject: {fileID: 2550234061597702493}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 5f867aa9138d8364e9edde3ecfa7fe62, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -147,10 +145,10 @@ BoxCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0, y: 0}
-    oldSize: {x: 0, y: 0}
-    newSize: {x: 0, y: 0}
-    adaptiveTilingThreshold: 0
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 0.32, y: 0.32}
+    newSize: {x: 0.32, y: 0.32}
+    adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
@@ -184,7 +182,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 4, y: 4, z: 4}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5687312923914852616}
@@ -230,12 +228,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
-  m_Color: {r: 0.8490566, g: 0.11614456, b: 0.11614456, a: 1}
+  m_Sprite: {fileID: -931878331, guid: cefe67a4324128b47aaeeb39a72e18e5, type: 3}
+  m_Color: {r: 0.9056604, g: 0.7390531, b: 0.7390531, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 0.32, y: 0.32}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1

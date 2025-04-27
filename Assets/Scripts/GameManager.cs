@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -9,9 +11,12 @@ public class GameManager : MonoBehaviour
     public int totalObjects;
     public int objectCollected;
 
+
     [Header("UI Settings")]
     [SerializeField] private TextMeshProUGUI objectsText;
-    [SerializeField] private GameObject winText;
+
+    public GameObject player;
+    public Slider playerSlider;
 
     public static GameManager Instance { get; private set; }
 
@@ -23,7 +28,9 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        winText.SetActive(false);
+        playerSlider.maxValue = FindAnyObjectByType<Player>().health.maxHealth;
+        playerSlider.value = FindAnyObjectByType<Player>().health.currentHealth;
+        player = FindAnyObjectByType<Player>().gameObject;
         totalObjects = FindObjectsOfType<Collectible>().Length;
         SetObjectsUI();
     }
@@ -34,12 +41,17 @@ public class GameManager : MonoBehaviour
         SetObjectsUI();
         if (objectCollected >= totalObjects)
         {
-            winText.SetActive(true);
+            UIManager.instance.ShowUI(UIManager.GameUI.Win);
         }
     }
 
     private void SetObjectsUI()
     {
         objectsText.text = "OGGETTI RACCOLTI: " + objectCollected + "/" + totalObjects;
+    }
+
+    internal void SetPlayerSlider(float currentHealth)
+    {
+        playerSlider.value = currentHealth;
     }
 }

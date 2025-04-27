@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public enum EnemyState
@@ -8,184 +7,200 @@ public enum EnemyState
     Attack,
 }
 
+[RequireComponent(typeof(Rigidbody2D))]
 public class Enemy : Character
 {
     [Header("Enemy Settings")]
-    [SerializeField] private float moveDistance = 5f;   // Distanza da percorrere a destra e a sinistra
+    [SerializeField] private float moveDistance = 5f;   // ampiezza patrol
     [SerializeField] private float detectionRadius = 5f;
-    [SerializeField] private float attackRange = 5f;
-    [SerializeField] private float attackCooldown = 1f; // Tempo di attesa tra gli attacchi
+    [SerializeField] private float attackRange = 1.5f;
+    [SerializeField] private float attackCooldown = 1f;
 
-    [Header("DEBUG VARIABLES")]
+    [Header("Debug")]
     [SerializeField] private EnemyState currentState = EnemyState.Patrol;
-    [SerializeField] private Player player;
-    [SerializeField] private float attackTimer; // Velocità di movimento
 
     private Rigidbody2D rb2d;
-
-    // PATROL 
-    private Vector3 initialPosition;
-    private Vector3 targetPosition;
+    private Vector2 initialPos;
+    private Vector2 targetPos;
     private bool movingRight = true;
-
-    // Ottimizzazione controllo collider: esegue il raycast a intervalli regolari
-    private float colliderCheckTimer = 0f;
-    private float colliderCheckInterval = 0.2f; // Controllo ogni 0.2 secondi
+    private Transform player;
+    private float attackTimer = 0f;
 
     protected override void Start()
     {
         base.Start();
         rb2d = GetComponent<Rigidbody2D>();
-        currentState = EnemyState.Chase;
-        initialPosition = transform.position;
-        targetPosition = initialPosition + new Vector3(moveDistance, 0, 0);
+        initialPos = rb2d.position;
+        SetNextPatrolTarget();
+        attackTimer = attackCooldown;
     }
 
-    // Il rilevamento del giocatore rimane in Update
-    void Update()
+    private void Update()
     {
+        if (UIManager.instance.GetCurrentActiveUI() != UIManager.GameUI.HUD) return;
+
+
         if (currentState == EnemyState.Attack)
         {
             AttackPlayer();
-            return;
         }
 
-        CheckingForPlayer();
+
     }
 
-    // La movimentazione viene gestita in FixedUpdate per interagire con la fisica
-    void FixedUpdate()
+    private void FixedUpdate()
     {
+        if (UIManager.instance.GetCurrentActiveUI() != UIManager.GameUI.HUD) return;
+
+        // Rilevamento player  
+        DetectPlayer();
+
         switch (currentState)
         {
-            case EnemyState.Patrol:
-                Patrol();
-                break;
-            case EnemyState.Chase:
-                ChasePlayer();
-                break;
+            case EnemyState.Patrol: Patrol(); break;
+            case EnemyState.Chase: ChasePlayer(); break;
+                // Attack non si muove
         }
     }
 
-    #region PATROL
-    private void CheckingForPlayer()
+    private void DetectPlayer()
     {
-        LayerMask playerMask = LayerMask.GetMask("Player");
-        Collider2D[] playerColliders = Physics2D.OverlapCircleAll(transform.position, detectionRadius, playerMask);
-        if (playerColliders.Length > 0)
+        var hits = Physics2D.OverlapCircleAll(
+            transform.position,
+            detectionRadius,
+            LayerMask.GetMask("Player")
+        );
+        if (hits.Length > 0)
         {
+            player = hits[0].transform;
             currentState = EnemyState.Chase;
-            player = playerColliders[0].GetComponent<Player>();
         }
-        else
+        else if (currentState != EnemyState.Attack)
         {
-            // Passa allo stato Patrol soltanto se non si sta attaccando
-            if (currentState != EnemyState.Attack)
-            {
-                currentState = EnemyState.Patrol;
-            }
             player = null;
+            currentState = EnemyState.Patrol;
         }
     }
 
-    protected void Patrol()
+    #region Patrol
+    private void Patrol()
     {
-        colliderCheckTimer += Time.fixedDeltaTime;
-        // Esegue il controllo collisione solo a intervalli definiti
-        if (colliderCheckTimer >= colliderCheckInterval)
+        // se arrivato al target o ostacolato, inverti direzione
+        if (IsBlocked() || Vector2.Distance(rb2d.position, targetPos) < 0.1f)
         {
-            if (CheckCollider())
-            {
-                colliderCheckTimer = 0f;
-                return; // Skip il movimento se viene rilevato un ostacolo
-            }
-            colliderCheckTimer = 0f;
+            movingRight = !movingRight;
+            SetNextPatrolTarget();
         }
 
-        Vector3 newPos = Vector3.MoveTowards(rb2d.position, targetPosition, characterData.speed * Time.fixedDeltaTime);
-        rb2d.MovePosition(newPos);
-
-        // Quando il target viene raggiunto, inverte la direzione
-        if (Mathf.Abs(rb2d.position.x - targetPosition.x) <= 0.01f)
-        {
-            if (movingRight)
-            {
-                targetPosition = initialPosition - new Vector3(moveDistance, 0, 0);
-                movingRight = false;
-            }
-            else
-            {
-                targetPosition = initialPosition + new Vector3(moveDistance, 0, 0);
-                movingRight = true;
-            }
-        }
+        Vector2 dir = (targetPos - rb2d.position).normalized;
+        TryMove(dir);
     }
 
-    private bool CheckCollider()
+    private void SetNextPatrolTarget()
     {
-        float rayDistance = 1f;
-        Vector2 direction = movingRight ? Vector2.right : Vector2.left;
-        RaycastHit2D hit = Physics2D.Raycast(rb2d.position, direction, rayDistance);
-
-        if (hit.collider != null && hit.collider.gameObject != gameObject)
-        {
-            if (movingRight)
-            {
-                targetPosition = initialPosition - new Vector3(moveDistance, 0, 0);
-                movingRight = false;
-            }
-            else
-            {
-                targetPosition = initialPosition + new Vector3(moveDistance, 0, 0);
-                movingRight = true;
-            }
-            return true;
-        }
-        return false;
+        float dir = movingRight ? +1f : -1f;
+        targetPos = initialPos + Vector2.right * moveDistance * dir;
     }
     #endregion
 
-    #region CHASE
+    #region Chase
     private void ChasePlayer()
     {
         if (player == null) return;
 
-        Vector3 direction = player.transform.position - transform.position;
-        direction.Normalize();
+        Vector2 chaseDir = (player.position - transform.position).normalized;
 
-        Vector3 newPos = rb2d.position + (Vector2)(direction * characterData.speed * Time.fixedDeltaTime);
-        rb2d.MovePosition(newPos);
-
-        // Se il giocatore è abbastanza vicino, passa allo stato ATTACK
-        if (Vector3.Distance(rb2d.position, player.transform.position) < attackRange)
+        // se entro in attackRange, passo ad Attack
+        if (Vector2.Distance(rb2d.position, player.position) <= attackRange * 2)
         {
             currentState = EnemyState.Attack;
+            return;
         }
+
+        TryMove(chaseDir);
     }
     #endregion
 
-    #region ATTACK
+    #region Attack
     private void AttackPlayer()
     {
-        if (player == null) return;
-
-        attackTimer -= Time.deltaTime;
-        if (attackTimer <= 0)
+        print("entro in attack");
+        if (player == null)
         {
+            currentState = EnemyState.Patrol;
+            return;
+        }
+
+        // Countdown attacco
+        attackTimer -= Time.deltaTime;
+        if (attackTimer <= 0f)
+        {
+            print("Attacco nemico!");
             PerformAction();
             attackTimer = attackCooldown;
         }
 
-        if (Vector3.Distance(rb2d.position, player.transform.position) >= attackRange)
+        // se il player scappa, torno a inseguire
+        if (Vector2.Distance(rb2d.position, player.position) > attackRange)
         {
             currentState = EnemyState.Chase;
         }
-    }
-    #endregion  
 
+        // per animazioni ferma input orizzontale
+        _Input.x = 0f;
+        EvaluateAnimationState();
+    }
+    #endregion
+
+    /// <summary>
+    /// Prova a muovere il rigidbody in dir, verificando ostacoli orizzontali.
+    /// Imposta anche _Input.x e aggiorna le animazioni.
+    /// </summary>
+    private void TryMove(Vector2 dir)
+    {
+        // controllo ostacolo orizzontale
+        RaycastHit2D hit = Physics2D.Raycast(
+            rb2d.position,
+            new Vector2(dir.x, 0f),
+            0.6f
+        );
+        if (hit.collider != null && hit.collider.gameObject != gameObject)
+        {
+            dir.x = 0f;
+        }
+
+        Vector2 newPos = rb2d.position + dir * characterData.speed * Time.fixedDeltaTime;
+        rb2d.MovePosition(newPos);
+
+        // setto input per animazioni
+        _Input.x = dir.x;
+        EvaluateAnimationState();
+    }
+
+    /// <summary>
+    /// Spara l'azione base (danno al player).
+    /// </summary>
     protected override void PerformAction()
     {
-        Debug.Log("Attacco il Player");
-        player.GetComponent<Player>().TakeDamage(1f);
+        if (player != null)
+        {
+            player.GetComponent<Player>().TakeDamage(characterData.damage);
+        }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, detectionRadius);
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, attackRange);
+    }
+
+    private bool IsBlocked()
+    {
+        // raycast in direzione patrol per muro
+        Vector2 dir = movingRight ? Vector2.right : Vector2.left;
+        RaycastHit2D hit = Physics2D.Raycast(rb2d.position, dir, 0.5f);
+        return hit.collider != null && hit.collider.gameObject != gameObject;
     }
 }

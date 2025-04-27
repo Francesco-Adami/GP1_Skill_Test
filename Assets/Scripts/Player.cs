@@ -25,17 +25,32 @@ public class Player : Character
 
     private void Update()
     {
+        if (UIManager.instance.GetCurrentActiveUI() != UIManager.GameUI.HUD) return;
+
         _Input.x = Input.GetAxisRaw("Horizontal");
+
+        if (Input.GetButtonDown("Jump"))
+        {
+            jumpPressed = true;
+        }
 
         CheckIfIsOnMap();
 
-        Move();
-        CheckDirection();
+        //CheckDirection();
         EvaluateAnimationState();
-        CheckGroundAndJump();
         Interact();
 
         Shoot();
+    }
+
+    private void FixedUpdate()
+    {
+        Move();
+        if (jumpPressed)
+        {
+            CheckGroundAndJump();
+            jumpPressed = false;
+        }
     }
 
     private void CheckIfIsOnMap()
@@ -109,7 +124,7 @@ public class Player : Character
         }
 
         // Se premo “Jump” e sono a terra, avvio la coroutine di salto
-        if (Input.GetButtonDown("Jump") && isGrounded && !isJumping)
+        if (isGrounded && !isJumping)
         {
             StartCoroutine(JumpArc());
         }
